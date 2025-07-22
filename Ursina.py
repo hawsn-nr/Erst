@@ -51,7 +51,7 @@ text = Text(text='Press Enter to start room 1!', wordwrap=30)
 hint_1_text = 'Try stepping on the tiles and\nstarting with the cool colors before the warm ones.\nPress "o" to continue.'
 try_again_text = 'Try Again!\nPress "o" to continue.'
 congratulation_text = 'Congrats! The door is unlock now.\nGo to door and press "f".\nPress "o" to continue.'
-room2_text = 'You are in the Lab. Find a way to open the final door.\nMaybe the computer can help.\nPress "o" to continue.'
+room2_text = 'You are in the Lab. Find a way to open the final door.\nMaybe the computer can help.\nGo to the computer and press "e"\nthen type the password\nPress "o" to continue.'
 congratulation_text_2 = 'Congrats! You Escaped!'
 need_key_text = 'This door needs a rusty key!\nPress "o" to continue.'
 key_collected_text = 'Key has been collected!\nPress "o" to continue.'
