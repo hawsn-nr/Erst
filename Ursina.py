@@ -36,10 +36,7 @@ room2_wall3 = Entity(model='cube', scale=(10, 10, .5), position=(5, 1, -20), tex
 computer = Entity(position=(3, 0.85, -19.5), rotation=(0, 180, 0))
 monitor = Entity(parent=computer, model='cube', scale=(1, 0.6, 0.1), color=color.dark_gray, texture='white_cube')
 screen = Entity(parent=monitor, model='quad', scale=(0.9, 0.8), color=color.black, position=(0, 0, -0.06))
-stand = Entity(parent=computer, model='cube', scale=(0.2, 0.7, 0.2), color=color.gray, position=(0, -0.6, 0))
-prompt_text = Text(parent=screen, text="", scale=(1.5, 1.5), position=(-0.45, 0.2, -0.01), rotation=(-180, 0, 0))
-terminal_input_text = Text(parent=screen, text="", scale=(1.5, 1.5), position=(-0.45, 0, -0.01), rotation=(-180, 0, 0))
-blinking_cursor = Entity(parent=screen, model='quad', scale=(0.01, 0.08, 1), color=color.lime, position=(-0.45, 0, -0.015), rotation=(-180,0,0), enabled=False)
+
 
 #---Cabinet---
 cabinet = Entity(position=(7, 1, -19.5), rotation=(0, 180, 0), model='cube', scale=(1.5, 2, 0.8), color=color.rgba(150, 150, 150, 128), collider='box')
@@ -68,10 +65,12 @@ player_has_key = False
 is_typing_on_terminal = False
 correct_pass = 'RUSTY'
 scrambled_pass = 'YUSRT'
-    
+terminal_ui_elements = []
+
+
 def check_password():
-    global cabinet_locked
-    player_answer = terminal_input_text.text
+    global cabinet_locked, terminal_ui_elements
+    player_answer = terminal_ui_elements[2].text
     if player_answer == correct_pass:
         text.text = password_success_text
         cabinet_locked = False
@@ -88,34 +87,41 @@ def close_door():
     door.animate_scale((1.5, 2.5, 0.5), duration=1)
     
 def start_terminal_interaction():
-    global is_typing_on_terminal
+    global is_typing_on_terminal, terminal_ui_elements
     if is_typing_on_terminal or not room_2_running: return
     is_typing_on_terminal = True
     player.enabled = False
-    blinking_cursor.enabled = True
-    blinking_cursor.blink(duration=1)
-    prompt_text.text = f"Unscramble: {scrambled_pass}\n> "
-    terminal_input_text.text = ""
+    panel = Entity(parent=camera.ui, model='quad', scale=(0.8, 0.6), color=color.black)
+    prompt = Text(parent=panel, text=f"Unscramble: {scrambled_pass}\n> ", position=(-0.45, 0.1), origin=(-.5, 0), scale=1.5)
+    input_text = Text(parent=panel, text="", position=(-0.3, 0.0), origin=(-.5, 0), scale=1.5)
+    cursor = Entity(parent=panel, model='quad', color=color.lime, scale=(.01, .05), position=(-0.3, 0.0), origin=(-.5, 0))
+    cursor.blink(duration=0.8)
+
+    terminal_ui_elements = [panel, prompt, input_text, cursor]
 
 def exit_terminal_mode():
-    global is_typing_on_terminal
+    global is_typing_on_terminal, terminal_ui_elements
+    if not is_typing_on_terminal: return
+    
     is_typing_on_terminal = False
     player.enabled = True
-    blinking_cursor.enabled = False
-    prompt_text.text = ""
-    terminal_input_text.text = ""
+    
+    for element in terminal_ui_elements:
+        destroy(element)
+    terminal_ui_elements.clear()
     
 def input(key):
     if is_typing_on_terminal:
+        input_text = terminal_ui_elements[2]
+        cursor = terminal_ui_elements[3]
         if key == 'escape':
             exit_terminal_mode()
         elif key == 'enter' or key == 'return':
             check_password()
         elif key == 'backspace':
-            terminal_input_text.text = terminal_input_text.text[:-1]
+            input_text.text = input_text.text[:-1]
         elif len(key) == 1:
-            terminal_input_text.text += key.upper()
-        blinking_cursor.x = terminal_input_text.x + terminal_input_text.width
+            input_text.text += key.upper()
         return 
     if key == 'enter' and room_1_running:
         text.text = hint_1_text
@@ -147,19 +153,17 @@ def update():
             room_2_running = True
             stepped = []
     if room_2_running:
-        if distance(player, computer) < 2 and held_keys['e']:
+        if not is_typing_on_terminal and distance(player, computer) < 2 and held_keys['e']:
             start_terminal_interaction()
         if not cabinet_locked and not player_has_key:
             if distance(player, cabinet) < 2 and held_keys['e']:
                 text.text = key_collected_text
                 player_has_key = True
-                if hasattr(cabinet, 'keycard_model'):
-                    destroy(cabinet.keycard_model)
         if distance(player, final_exit_door) < 2 and held_keys['e']:
             if player_has_key:
                 text.text = congratulation_text_2
                 player.disable()
-                invoke(application.quit, delay=5)
+                invoke(application.quit, delay=3)
             else:
                 text.text = need_key_text
         
