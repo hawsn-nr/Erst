@@ -13,11 +13,13 @@ room1_wall4 = Entity(model='cube', scale=(4, 10, .5), position=(2.24, 1, -4.75),
 room1_wall5 = Entity(model='cube', scale=(4, 10, .5), position=(7.76, 1, -4.75), texture='white_cube', collider='box', color=color.brown, texture_scale=(4,10))
 room1_wall6 = Entity(model='cube', scale=(1.5, 3.5, .5), position=(5, 4.25, -4.75), texture='white_cube', collider='box', color=color.brown, texture_scale=(1.5,3.5))
 
-#---Door Room 1---
+#---Doors---
 door = Entity(model='cube', texture='brick', scale=(1.5, 2.5, 0.5), position=(5, 1.25, -5), collider='box')
-final_exit_door = Entity(model='cube', position=(5, -1.5, -19.95), scale=(2, 5, 0.4), color=color.dark_gray, collider='box')
+final_exit_door = Entity(model='cube', texture='brick', position=(5, 1, -19.8), scale=(1.5, 2.5, 0.5), color=color.dark_gray, collider='box')
 door_lock = True
+final_door_lock = True
 door.open_time = 0
+final_exit_door.open_time = 0
 
 #---Tiles---
 blue = Entity(model='cube', position=(2, 0, 4), color=color.blue, collider='box', identifier='blue')
@@ -30,29 +32,30 @@ purple = Entity(model='cube', position=(1, 0, -4), color=rgb(128, 0, 128), colli
 #---Walls Room 2---
 room2_wall1 = Entity(model='cube', scale=(.5, 10, 16), position=(0, 1, -12), texture='white_cube', collider='box', color=color.brown , texture_scale=(10,10))
 room2_wall2 = Entity(model='cube', scale=(.5, 10, 16), position=(10, 1, -12), texture='white_cube', collider='box', color=color.brown , texture_scale=(10,10))
-room2_wall3 = Entity(model='cube', scale=(10, 10, .5), position=(5, 1, -20), texture='white_cube', collider='box', color=color.brown, texture_scale=(10,10))
+room2_wall3 = Entity(model='cube', scale=(4.5, 10, .5), position=(8, 1, -20), texture='white_cube', collider='box', color=color.brown, texture_scale=(4.5, 10))
+room2_wall4 = Entity(model='cube', scale=(4.5, 10, .5), position=(2, 1, -20), texture='white_cube', collider='box', color=color.brown, texture_scale=(4.5, 10))
+room2_wall5 = Entity(model='cube', scale=(1.5, 3.8, .5), position=(5, 4.1, -20), texture='white_cube', collider='box', color=color.brown, texture_scale=(1.5, 3.8))
 
 #---Computer---
 computer = Entity(position=(3, 0.85, -19.5), rotation=(0, 180, 0))
 monitor = Entity(parent=computer, model='cube', scale=(1, 0.6, 0.1), color=color.dark_gray, texture='white_cube')
 screen = Entity(parent=monitor, model='quad', scale=(0.9, 0.8), color=color.black, position=(0, 0, -0.06))
 
-
 #---Cabinet---
-cabinet = Entity(position=(7, 1, -19.5), rotation=(0, 180, 0), model='cube', scale=(1.5, 2, 0.8), color=color.rgba(150, 150, 150, 128), collider='box')
+cabinet = Entity(position=(7, 1, -19.5), rotation=(0, 180, 0), model='cube', texture='white_cube', scale=(1.5, 2, 0.8), color=color.rgba(150, 150, 150, 128), collider='box')
 keycard_model = Entity(parent=cabinet, model='quad', scale=(0.3, 0.2), color=color.azure, position=(0, 0, -0.41), rotation=(-90, 0, 0), texture='white_cube', double_sided=True)
 cabinet.keycard_model = keycard_model
 
 #---Texts---
-text = Text(text='Press Enter to start room 1!', wordwrap=30)
+text = Text(text='Press Enter to start room 1!', wordwrap=20, color=color.black)
 hint_1_text = 'Try stepping on the tiles and\nstarting with the cool colors before the warm ones.\nPress "o" to continue.'
 try_again_text = 'Try Again!\nPress "o" to continue.'
 congratulation_text = 'Congrats! The door is unlock now.\nGo to door and press "f".\nPress "o" to continue.'
 room2_text = 'You are in the Lab. Find a way to open the final door.\nMaybe the computer can help.\nGo to the computer and press "e"\nthen type the password\nPress "o" to continue.'
 congratulation_text_2 = 'Congrats! You Escaped!'
 need_key_text = 'This door needs a rusty key!\nPress "o" to continue.'
-key_collected_text = 'Key has been collected!\nPress "o" to continue.'
-password_success_text = 'Password correct! Something unlocked...\nPress "o" to continue.'
+key_collected_text = 'Key has been collected!\nGo to final door and escape!\nPress "o" to continue.'
+password_success_text = 'Password correct!\nGo to the cabinet and collect Key, use "e"\nPress "o" to continue.'
 password_fail_text = 'Incorrect password.\nPress "o" to continue.'
 
 room_1_running = True
@@ -63,17 +66,19 @@ room_2_running = False
 cabinet_locked = True
 player_has_key = False
 is_typing_on_terminal = False
+computer_on = True
 correct_pass = 'RUSTY'
 scrambled_pass = 'YUSRT'
 terminal_ui_elements = []
 
 
 def check_password():
-    global cabinet_locked, terminal_ui_elements
+    global cabinet_locked, terminal_ui_elements, computer_on
     player_answer = terminal_ui_elements[2].text
     if player_answer == correct_pass:
         text.text = password_success_text
         cabinet_locked = False
+        computer_on = False
     else:
         text.text = password_fail_text
     exit_terminal_mode()
@@ -85,10 +90,18 @@ def open_door():
 def close_door():
     door.animate_rotation((0, 0, 0), duration=1)
     door.animate_scale((1.5, 2.5, 0.5), duration=1)
+
+def open_door2():
+    final_exit_door.animate_rotation((0, 0, 90), duration=1)
+    final_exit_door.animate_scale((0, 0, 0), duration=1)
+    
+def close_door2():
+    final_exit_door.animate_rotation((0, 0, 0), duration=1)    
+    final_exit_door.animate_scale((1.5, 2.5, 0.5), duration=1)    
     
 def start_terminal_interaction():
     global is_typing_on_terminal, terminal_ui_elements
-    if is_typing_on_terminal or not room_2_running: return
+    if is_typing_on_terminal or not room_2_running or not computer_on: return
     is_typing_on_terminal = True
     player.enabled = False
     panel = Entity(parent=camera.ui, model='quad', scale=(0.8, 0.6), color=color.black)
@@ -133,6 +146,10 @@ def input(key):
             door.open_time = time.time()
             if room_2_running:
                 text.text = room2_text
+        if distance(player, final_exit_door) < 2 and player_has_key:
+            open_door2()
+            final_exit_door.open_time = time.time()
+            text.text = congratulation_text_2
                 
 def update():
     global stepped, door_lock, room_1_running, player_has_key, room_2_running, final_exit_door, key_collected_text
@@ -159,13 +176,8 @@ def update():
             if distance(player, cabinet) < 2 and held_keys['e']:
                 text.text = key_collected_text
                 player_has_key = True
-        if distance(player, final_exit_door) < 2 and held_keys['e']:
-            if player_has_key:
-                text.text = congratulation_text_2
-                player.disable()
-                invoke(application.quit, delay=3)
-            else:
-                text.text = need_key_text
+        if (door.scale == Vec3(0.001, 0.001, 0.001)) and time.time() - final_exit_door.open_time > 5:
+            close_door2()
         
 sky = Sky()
 app.run()
